@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#141419">
+<title>ژورنال طلا</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon.svg">
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet">
+<style>
+:root{
+  --bg:#101014; --card:#1a1a21; --card2:#23232c; --line:#2e2e38;
+  --gold:#e0aa3e; --gold2:#b9822a; --txt:#f2f2f5; --mut:#9a9aa5;
+  --grn:#2fbf71; --red:#e5534b;
+}
+*{box-sizing:border-box; -webkit-tap-highlight-color:transparent}
+html,body{margin:0; padding:0}
+body{background:var(--bg); color:var(--txt); font-family:Vazirmatn,Tahoma,sans-serif; min-height:100vh}
+button{font-family:inherit; cursor:pointer}
+header{position:sticky; top:0; z-index:5; background:linear-gradient(135deg,#1c1a12,#141419 60%);
+  border-bottom:1px solid var(--line); padding:14px 16px 12px; display:flex; align-items:center; gap:10px}
+header .t{font-size:20px; font-weight:800; color:var(--gold)}
+header .s{font-size:11px; color:var(--mut)}
+header .sp{flex:1}
+#updateBtn{background:var(--card2); color:var(--txt); border:1px solid var(--line); border-radius:999px; padding:7px 12px; font-size:12px}
+main{padding:14px 14px 110px; max-width:640px; margin:0 auto}
+.filters{display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap}
+.chip{background:var(--card); color:var(--mut); border:1px solid var(--line); border-radius:999px; padding:7px 14px; font-size:13px}
+.chip.on{background:var(--gold); color:#191204; border-color:var(--gold); font-weight:700}
+.stats{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px}
+.stat{background:var(--card); border:1px solid var(--line); border-radius:16px; padding:12px 14px}
+.stat .k{font-size:12px; color:var(--mut); margin-bottom:4px}
+.stat .v{font-size:19px; font-weight:800; direction:ltr; text-align:right; font-variant-numeric:tabular-nums}
+.stat.wide{grid-column:1/-1}
+.pos{color:var(--grn)} .neg{color:var(--red)} .gold{color:var(--gold)}
+.entry{background:var(--card); border:1px solid var(--line); border-radius:16px; padding:12px 14px; margin-bottom:10px; position:relative}
+.entry .row1{display:flex; align-items:center; gap:8px; margin-bottom:6px}
+.badge{font-size:11px; font-weight:700; border-radius:999px; padding:3px 10px}
+.b-buy{background:rgba(47,191,113,.15); color:var(--grn)}
+.b-sell{background:rgba(229,83,75,.15); color:var(--red)}
+.b-dep{background:rgba(47,191,113,.15); color:var(--grn)}
+.b-wd{background:rgba(224,170,62,.16); color:var(--gold)}
+.acc{font-size:11px; color:var(--mut); border:1px solid var(--line); border-radius:999px; padding:3px 9px}
+.entry .dt{margin-inline-start:auto; font-size:11px; color:var(--mut)}
+.entry .pnl{font-size:18px; font-weight:800; direction:ltr; font-variant-numeric:tabular-nums}
+.entry .meta{font-size:12.5px; color:var(--mut); direction:ltr; text-align:right; font-variant-numeric:tabular-nums}
+.entry .rsn{font-size:13px; color:#d8d8de; margin-top:5px; line-height:1.9}
+.entry .rsn b{color:var(--gold); font-weight:700}
+.del{position:absolute; bottom:10px; inset-inline-end:12px; background:none; border:none; font-size:15px; opacity:.55; padding:4px}
+.empty{color:var(--mut); text-align:center; padding:44px 10px; font-size:14px; line-height:2.1}
+#addBtn{position:fixed; bottom:calc(22px + env(safe-area-inset-bottom)); inset-inline-start:50%; transform:translateX(50%);
+  width:60px; height:60px; border-radius:50%; border:none; background:linear-gradient(135deg,#f0bc55,var(--gold2));
+  color:#191204; font-size:32px; line-height:1; box-shadow:0 8px 24px rgba(224,170,62,.35); z-index:6}
+#creator{position:fixed; bottom:calc(30px + env(safe-area-inset-bottom)); inset-inline-end:14px; z-index:6;
+  background:rgba(26,26,33,.92); border:1px solid var(--line); color:var(--mut); text-decoration:none;
+  font-size:11.5px; padding:6px 12px; border-radius:999px}
+.sheetWrap{position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:20; display:none}
+.sheetWrap.open{display:block}
+.sheet{position:absolute; bottom:0; left:0; right:0; max-width:640px; margin:0 auto; background:#17171d;
+  border-radius:22px 22px 0 0; padding:18px 16px calc(18px + env(safe-area-inset-bottom)); max-height:88vh; overflow-y:auto}
+.sheet h3{margin:0 0 14px; font-size:16px}
+.tabs{display:flex; gap:8px; margin-bottom:14px}
+.tab{flex:1; background:var(--card2); color:var(--mut); border:1px solid var(--line); border-radius:12px; padding:10px 0; font-size:14px}
+.tab.on{background:var(--gold); color:#191204; font-weight:800; border-color:var(--gold)}
+.f{margin-bottom:12px}
+.f label{display:block; font-size:12.5px; color:var(--mut); margin-bottom:6px}
+.f input,.f textarea{width:100%; background:var(--card2); border:1px solid var(--line); border-radius:12px;
+  color:var(--txt); font-family:inherit; font-size:16px; padding:11px 12px; outline:none}
+.f textarea{resize:vertical; min-height:44px}
+.f input:focus,.f textarea:focus{border-color:var(--gold)}
+.seg{display:flex; gap:8px}
+.seg button{flex:1; background:var(--card2); color:var(--mut); border:1px solid var(--line); border-radius:12px; padding:10px 0; font-size:14px}
+.seg button.on{font-weight:800}
+.seg button.on.buy{background:rgba(47,191,113,.18); color:var(--grn); border-color:var(--grn)}
+.seg button.on.sell{background:rgba(229,83,75,.18); color:var(--red); border-color:var(--red)}
+.seg button.on.win{background:rgba(47,191,113,.18); color:var(--grn); border-color:var(--grn)}
+.seg button.on.lose{background:rgba(229,83,75,.18); color:var(--red); border-color:var(--red)}
+.seg button.on.acc{background:var(--gold); color:#191204; border-color:var(--gold)}
+.cols{display:grid; grid-template-columns:1fr 1fr; gap:10px}
+.save{width:100%; background:linear-gradient(135deg,#f0bc55,var(--gold2)); color:#191204; border:none;
+  border-radius:14px; padding:14px 0; font-size:16px; font-weight:800; margin-top:4px}
+.cancel{width:100%; background:none; color:var(--mut); border:none; padding:12px 0; font-size:14px}
+.delAll{width:100%; background:none; border:1px solid var(--line); color:var(--red); border-radius:12px; padding:10px 0; font-size:13px; margin-top:16px}
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <div class="t">ژورنال طلا 🪙</div>
+    <div class="s">XAUUSD — ثبت واریز، برداشت و معاملات</div>
+  </div>
+  <div class="sp"></div>
+  <button id="updateBtn" type="button">⟳ بروزرسانی</button>
+</header>
+<main>
+  <div class="filters" id="filters"></div>
+  <div class="stats" id="stats"></div>
+  <div id="list"></div>
+  <button class="delAll" id="delAll" type="button" style="display:none">حذف همه ثبت‌ها</button>
+</main>
+<button id="addBtn" type="button" aria-label="ثبت تازه">+</button>
+<a id="creator" href="https://t.me/mmdGK" target="_blank" rel="noopener">ساخته‌ی mmdGK</a>
+
+<div class="sheetWrap" id="sheetWrap">
+  <div class="sheet">
+    <h3>ثبت تازه</h3>
+    <div class="tabs">
+      <button class="tab on" data-k="trade" type="button">معامله</button>
+      <button class="tab" data-k="deposit" type="button">واریز</button>
+      <button class="tab" data-k="withdraw" type="button">برداشت</button>
+    </div>
+    <div class="f">
+      <label>حساب</label>
+      <div class="seg" id="accSeg">
+        <button data-a="prop" class="on acc" type="button">پراپ</button>
+        <button data-a="trendo" type="button">ترندو</button>
+        <button data-a="eplanet" type="button">ای‌پلنت</button>
+      </div>
+    </div>
+    <div id="tradeFields">
+      <div class="f">
+        <label>جهت معامله</label>
+        <div class="seg" id="dirSeg">
+          <button data-d="buy" class="on buy" type="button">خرید ⬆</button>
+          <button data-d="sell" type="button">فروش ⬇</button>
+        </div>
+      </div>
+      <div class="cols">
+        <div class="f"><label>حجم (لات)</label><input id="lot" inputmode="decimal" placeholder="0.01"></div>
+        <div class="f"><label>قیمت ورود</label><input id="entry" inputmode="decimal" placeholder="4120.50"></div>
+        <div class="f"><label>قیمت خروج</label><input id="exit" inputmode="decimal" placeholder="4132.00"></div>
+        <div class="f"><label>تاریخ و ساعت</label><input id="when" type="datetime-local"></div>
+      </div>
+      <div class="f">
+        <label>نتیجه معامله</label>
+        <div class="seg" id="resSeg" style="margin-bottom:8px">
+          <button data-r="win" class="on win" type="button">سود</button>
+          <button data-r="lose" type="button">ضرر</button>
+        </div>
+        <input id="pnl" inputmode="decimal" placeholder="مبلغ به دلار — مثلاً 12.50">
+      </div>
+      <div class="f"><label>دلیل ورود</label><textarea id="reasonIn" placeholder="چرا وارد شدی؟ (زون، خبر، تأییدیه…)"></textarea></div>
+      <div class="f"><label>دلیل خروج / یادداشت</label><textarea id="reasonOut" placeholder="چرا خارج شدی؟ (TP، SL، دستی، ترس…)"></textarea></div>
+    </div>
+    <div id="moneyFields" style="display:none">
+      <div class="f"><label>مبلغ (دلار)</label><input id="amount" inputmode="decimal" placeholder="مثلاً 25"></div>
+      <div class="f"><label>تاریخ و ساعت</label><input id="whenM" type="datetime-local"></div>
+      <div class="f"><label>یادداشت</label><textarea id="note" placeholder="اختیاری…"></textarea></div>
+    </div>
+    <button class="save" id="saveBtn" type="button">ثبت ✓</button>
+    <button class="cancel" id="cancelBtn" type="button">لغو</button>
+  </div>
+</div>
+
+<div class="sheetWrap" id="confirmWrap">
+  <div class="sheet">
+    <h3 id="confirmText">مطمئنی؟</h3>
+    <button class="save" id="confirmYes" type="button" style="background:var(--red); color:#fff">آره، حذف کن</button>
+    <button class="cancel" id="confirmNo" type="button">نه، برگرد</button>
+  </div>
+</div>
+<script>
+const KEY = 'gold-journal-v1';
+const ACCS = { prop: 'پراپ', trendo: 'ترندو', eplanet: 'ای‌پلنت' };
+let entries = [];
+try { entries = JSON.parse(localStorage.getItem(KEY) || '[]'); } catch (e) { entries = []; }
+let filter = 'all';
+let formKind = 'trade', formAcc = 'prop', formDir = 'buy', formRes = 'win';
+let confirmCb = null;
+
+const $ = id => document.getElementById(id);
+function save() { localStorage.setItem(KEY, JSON.stringify(entries)); }
+function parseNum(s) {
+  if (s == null) return NaN;
+  s = String(s).replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d))
+               .replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d))
+               .replace(/٫/g, '.').replace(/[,٬\s]/g, '');
+  const n = parseFloat(s);
+  return isNaN(n) ? NaN : n;
+}
+function fmt(n, dec) {
+  const v = Math.abs(n).toFixed(dec == null ? 2 : dec);
+  return (n < 0 ? '-' : '') + v;
+}
+function fmtSigned(n) { return (n > 0 ? '+' : '') + fmt(n) + ' $'; }
+function dateStr(ts) {
+  try { return new Date(ts).toLocaleString('fa-IR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }); }
+  catch (e) { return ''; }
+}
+function filtered() {
+  return filter === 'all' ? entries.slice() : entries.filter(e => e.account === filter);
+}
+function renderFilters() {
+  const defs = [['all', 'همه حساب‌ها'], ['prop', 'پراپ'], ['trendo', 'ترندو'], ['eplanet', 'ای‌پلنت']];
+  $('filters').innerHTML = defs.map(([k, t]) =>
+    `<button class="chip ${filter === k ? 'on' : ''}" data-f="${k}" type="button">${t}</button>`).join('');
+  document.querySelectorAll('#filters .chip').forEach(c =>
+    c.addEventListener('click', () => { filter = c.dataset.f; render(); }));
+}
+function renderStats() {
+  const list = filtered();
+  const trades = list.filter(e => e.kind === 'trade');
+  const wins = trades.filter(e => e.pnl > 0), losses = trades.filter(e => e.pnl < 0);
+  const net = trades.reduce((s, e) => s + e.pnl, 0);
+  const gp = wins.reduce((s, e) => s + e.pnl, 0);
+  const gl = losses.reduce((s, e) => s + e.pnl, 0);
+  const dep = list.filter(e => e.kind === 'deposit').reduce((s, e) => s + e.amount, 0);
+  const wd = list.filter(e => e.kind === 'withdraw').reduce((s, e) => s + e.amount, 0);
+  const wr = trades.length ? Math.round(wins.length / trades.length * 100) : 0;
+  const avgW = wins.length ? gp / wins.length : 0;
+  const avgL = losses.length ? gl / losses.length : 0;
+  const flow = dep - wd + net;
+  const cls = n => n > 0 ? 'pos' : (n < 0 ? 'neg' : '');
+  $('stats').innerHTML = `
+    <div class="stat wide"><div class="k">سود / ضرر خالص معاملات</div><div class="v ${cls(net)}">${fmtSigned(net)}</div></div>
+    <div class="stat"><div class="k">مجموع واریز</div><div class="v pos">+${fmt(dep)} $</div></div>
+    <div class="stat"><div class="k">مجموع برداشت</div><div class="v gold">-${fmt(wd)} $</div></div>
+    <div class="stat"><div class="k">جریان خالص (واریز − برداشت + سود)</div><div class="v ${cls(flow)}">${fmtSigned(flow)}</div></div>
+    <div class="stat"><div class="k">وین‌ریت</div><div class="v">${trades.length ? wr + '٪' : '—'} <span style="font-size:12px;color:var(--mut)">(${wins.length} برد / ${losses.length} باخت)</span></div></div>
+    <div class="stat"><div class="k">میانگین سود</div><div class="v pos">${wins.length ? '+' + fmt(avgW) + ' $' : '—'}</div></div>
+    <div class="stat"><div class="k">میانگین ضرر</div><div class="v neg">${losses.length ? fmt(avgL) + ' $' : '—'}</div></div>`;
+}
+function esc(s) {
+  return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+function renderList() {
+  const list = filtered().sort((a, b) => b.ts - a.ts);
+  $('delAll').style.display = entries.length ? 'block' : 'none';
+  if (!list.length) {
+    $('list').innerHTML = '<div class="empty">هنوز چیزی ثبت نشده.<br>با دکمه + اولین معامله یا واریزت رو ثبت کن.</div>';
+    return;
+  }
+  $('list').innerHTML = list.map(e => {
+    if (e.kind === 'trade') {
+      const win = e.pnl >= 0;
+      return `<div class="entry">
+        <div class="row1">
+          <span class="badge ${e.dir === 'buy' ? 'b-buy' : 'b-sell'}">${e.dir === 'buy' ? 'خرید' : 'فروش'} ${e.lot ? e.lot + ' لات' : ''}</span>
+          <span class="acc">${ACCS[e.account] || ''}</span>
+          <span class="dt">${dateStr(e.ts)}</span>
+        </div>
+        <div class="row1"><span class="pnl ${win ? 'pos' : 'neg'}">${fmtSigned(e.pnl)}</span>
+        ${(e.entry || e.exit) ? `<span class="meta">${e.entry || '…'} ← ${e.exit || '…'}</span>` : ''}</div>
+        ${e.reasonIn ? `<div class="rsn"><b>ورود:</b> ${esc(e.reasonIn)}</div>` : ''}
+        ${e.reasonOut ? `<div class="rsn"><b>خروج:</b> ${esc(e.reasonOut)}</div>` : ''}
+        <button class="del" data-del="${e.id}" type="button">🗑</button>
+      </div>`;
+    }
+    const dep = e.kind === 'deposit';
+    return `<div class="entry">
+      <div class="row1">
+        <span class="badge ${dep ? 'b-dep' : 'b-wd'}">${dep ? 'واریز ⬇' : 'برداشت ⬆'}</span>
+        <span class="acc">${ACCS[e.account] || ''}</span>
+        <span class="dt">${dateStr(e.ts)}</span>
+      </div>
+      <div class="row1"><span class="pnl ${dep ? 'pos' : 'gold'}">${dep ? '+' : '-'}${fmt(e.amount)} $</span></div>
+      ${e.note ? `<div class="rsn">${esc(e.note)}</div>` : ''}
+      <button class="del" data-del="${e.id}" type="button">🗑</button>
+    </div>`;
+  }).join('');
+  document.querySelectorAll('[data-del]').forEach(b => b.addEventListener('click', () => {
+    askConfirm('این ثبت حذف بشه؟', () => {
+      entries = entries.filter(x => x.id !== b.dataset.del);
+      save(); render();
+    });
+  }));
+}
+function render() { renderFilters(); renderStats(); renderList(); }
+
+function askConfirm(text, cb) {
+  $('confirmText').textContent = text;
+  confirmCb = cb;
+  $('confirmWrap').classList.add('open');
+}
+$('confirmNo').addEventListener('click', () => { $('confirmWrap').classList.remove('open'); confirmCb = null; });
+$('confirmYes').addEventListener('click', () => {
+  $('confirmWrap').classList.remove('open');
+  if (confirmCb) confirmCb();
+  confirmCb = null;
+});
+
+function nowLocal() {
+  const d = new Date();
+  const p = n => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`;
+}
+function openSheet() {
+  $('when').value = nowLocal();
+  $('whenM').value = nowLocal();
+  $('sheetWrap').classList.add('open');
+}
+function closeSheet() { $('sheetWrap').classList.remove('open'); }
+function segWire(id, attr, cb) {
+  document.querySelectorAll('#' + id + ' button').forEach(b => b.addEventListener('click', () => {
+    document.querySelectorAll('#' + id + ' button').forEach(x => x.classList.remove('on'));
+    b.classList.add('on');
+    cb(b.dataset[attr]);
+  }));
+}
+segWire('accSeg', 'a', v => formAcc = v);
+segWire('dirSeg', 'd', v => formDir = v);
+segWire('resSeg', 'r', v => formRes = v);
+document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => {
+  document.querySelectorAll('.tab').forEach(x => x.classList.remove('on'));
+  t.classList.add('on');
+  formKind = t.dataset.k;
+  $('tradeFields').style.display = formKind === 'trade' ? 'block' : 'none';
+  $('moneyFields').style.display = formKind === 'trade' ? 'none' : 'block';
+}));
+$('addBtn').addEventListener('click', openSheet);
+$('cancelBtn').addEventListener('click', closeSheet);
+$('sheetWrap').addEventListener('click', e => { if (e.target === $('sheetWrap')) closeSheet(); });
+$('saveBtn').addEventListener('click', () => {
+  const id = Date.now() + '' + Math.floor(Math.random() * 999);
+  if (formKind === 'trade') {
+    const mag = parseNum($('pnl').value);
+    if (isNaN(mag) || mag === 0) { $('pnl').focus(); return; }
+    const wv = $('when').value ? new Date($('when').value).getTime() : Date.now();
+    entries.push({
+      id, kind: 'trade', ts: isNaN(wv) ? Date.now() : wv, account: formAcc, dir: formDir,
+      lot: parseNum($('lot').value) || null,
+      entry: parseNum($('entry').value) || null,
+      exit: parseNum($('exit').value) || null,
+      pnl: formRes === 'win' ? Math.abs(mag) : -Math.abs(mag),
+      reasonIn: $('reasonIn').value.trim(), reasonOut: $('reasonOut').value.trim()
+    });
+  } else {
+    const amt = parseNum($('amount').value);
+    if (isNaN(amt) || amt <= 0) { $('amount').focus(); return; }
+    const wv = $('whenM').value ? new Date($('whenM').value).getTime() : Date.now();
+    entries.push({
+      id, kind: formKind, ts: isNaN(wv) ? Date.now() : wv, account: formAcc,
+      amount: Math.abs(amt), note: $('note').value.trim()
+    });
+  }
+  save(); render(); closeSheet();
+  ['lot', 'entry', 'exit', 'pnl', 'reasonIn', 'reasonOut', 'amount', 'note'].forEach(i => $(i).value = '');
+});
+$('delAll').addEventListener('click', () =>
+  askConfirm('همه ثبت‌ها حذف بشن؟', () => { entries = []; save(); render(); }));
+
+$('updateBtn').addEventListener('click', async () => {
+  try {
+    if ('caches' in window) {
+      const keys = await caches.keys();
+      await Promise.all(keys.map(k => caches.delete(k)));
+    }
+    if ('serviceWorker' in navigator) {
+      const regs = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(regs.map(r => r.update()));
+    }
+  } catch (e) {}
+  const u = new URL(location.href);
+  u.searchParams.set('v', Date.now());
+  location.replace(u.toString());
+});
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));
+}
+render();
+</script>
+</body>
+</html>
