@@ -94,6 +94,7 @@ input[type="date"],input[type="time"]{-webkit-appearance:none; appearance:none; 
 .save{width:100%; background:linear-gradient(135deg,#f0bc55,var(--gold2)); color:#191204; border:none;
   border-radius:14px; padding:14px 0; font-size:16px; font-weight:800; margin-top:4px}
 .cancel{width:100%; background:none; color:var(--mut); border:none; padding:12px 0; font-size:14px}
+.bkp{background:none; border:1px solid var(--line); color:var(--txt); border-radius:12px; padding:11px 0; font-size:13.5px}
 .delAll{width:100%; background:none; border:1px solid var(--line); color:var(--red); border-radius:12px; padding:10px 0; font-size:13px; margin-top:16px}
 </style>
 </head>
@@ -114,6 +115,11 @@ input[type="date"],input[type="time"]{-webkit-appearance:none; appearance:none; 
   <div class="filters" id="filters"></div>
   <div class="stats" id="stats"></div>
   <div id="list"></div>
+  <div class="cols" style="margin-top:2px">
+    <button class="bkp" id="backupBtn" type="button">⬇ گرفتن بکاپ</button>
+    <button class="bkp" id="importBtn" type="button">⬆ بازیابی بکاپ</button>
+  </div>
+  <input type="file" id="importFile" accept=".json,application/json" hidden>
   <button class="delAll" id="delAll" type="button" style="display:none">حذف همه ثبت‌ها</button>
 </main>
 <button id="addBtn" type="button" aria-label="ثبت تازه">+</button>
@@ -426,6 +432,44 @@ $('saveBtn').addEventListener('click', () => {
 });
 $('delAll').addEventListener('click', () =>
   askConfirm('همه ثبت‌ها حذف بشن؟', () => { entries = []; save(); render(); }));
+
+$('backupBtn').addEventListener('click', async () => {
+  const data = JSON.stringify({ app: 'gold-journal', version: 1, exportedAt: new Date().toISOString(), entries }, null, 2);
+  const fname = 'gold-journal-backup-' + new Date().toISOString().slice(0, 10) + '.json';
+  const file = new File([data], fname, { type: 'application/json' });
+  if (navigator.canShare && navigator.canShare({ files: [file] })) {
+    try { await navigator.share({ files: [file] }); return; }
+    catch (e) { if (e && e.name === 'AbortError') return; }
+  }
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(file);
+  a.download = fname;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+  showToast('✓ فایل بکاپ ساخته شد');
+});
+$('importBtn').addEventListener('click', () => $('importFile').click());
+$('importFile').addEventListener('change', () => {
+  const f = $('importFile').files[0];
+  $('importFile').value = '';
+  if (!f) return;
+  f.text().then(txt => {
+    let arr = null;
+    try {
+      const parsed = JSON.parse(txt);
+      arr = Array.isArray(parsed) ? parsed : parsed.entries;
+    } catch (e) {}
+    if (!Array.isArray(arr)) { showToast('✗ فایل بکاپ خوانا نیست'); return; }
+    const clean = arr.filter(x => x && x.kind && x.ts);
+    askConfirm(`بکاپ با ${clean.length} ثبت جایگزین همه‌ی ثبت‌های فعلی بشه؟`, () => {
+      entries = clean;
+      save(); render();
+      showToast('✓ بکاپ بازیابی شد');
+    });
+  });
+});
 
 let toastTimer = null;
 function showToast(msg) {
