@@ -90,6 +90,7 @@ input[type="date"],input[type="time"]{-webkit-appearance:none; appearance:none; 
 .seg button.on.acc{background:var(--gold); color:#191204; border-color:var(--gold)}
 .cols{display:grid; grid-template-columns:1fr 1fr; gap:10px}
 .cols>*{min-width:0}
+.calc{font-size:12px; color:var(--gold); margin-top:6px; min-height:14px}
 .save{width:100%; background:linear-gradient(135deg,#f0bc55,var(--gold2)); color:#191204; border:none;
   border-radius:14px; padding:14px 0; font-size:16px; font-weight:800; margin-top:4px}
 .cancel{width:100%; background:none; color:var(--mut); border:none; padding:12px 0; font-size:14px}
@@ -157,6 +158,7 @@ input[type="date"],input[type="time"]{-webkit-appearance:none; appearance:none; 
           <button data-r="lose" class="lose" type="button">ضرر</button>
         </div>
         <input id="pnl" inputmode="decimal" placeholder="مبلغ به دلار — مثلاً 12.50">
+        <div class="calc" id="pnlCalc"></div>
       </div>
       <div class="f"><label>دلیل ورود</label><textarea id="reasonIn" placeholder="چرا وارد شدی؟ (زون، خبر، تأییدیه…)"></textarea></div>
       <div class="f"><label>دلیل خروج / یادداشت</label><textarea id="reasonOut" placeholder="چرا خارج شدی؟ (TP، SL، دستی، ترس…)"></textarea></div>
@@ -348,6 +350,7 @@ function openEdit(id) {
     $('entry').value = e.entry || '';
     $('exit').value = e.exit || '';
     $('pnl').value = Math.abs(e.pnl);
+    $('pnlCalc').textContent = '';
     $('reasonIn').value = e.reasonIn || '';
     $('reasonOut').value = e.reasonOut || '';
     setDT('date', 'time', e.ts);
@@ -367,8 +370,20 @@ function segWire(id, attr, cb) {
   }));
 }
 segWire('accSeg', 'a', v => formAcc = v);
-segWire('dirSeg', 'd', v => formDir = v);
+segWire('dirSeg', 'd', v => { formDir = v; calcPnl(); });
 segWire('resSeg', 'r', v => formRes = v);
+function calcPnl() {
+  const lot = parseNum($('lot').value), en = parseNum($('entry').value), ex = parseNum($('exit').value);
+  if (!lot || isNaN(en) || isNaN(ex)) { $('pnlCalc').textContent = ''; return; }
+  let p = (formDir === 'buy' ? (ex - en) : (en - ex)) * lot * 100;
+  p = Math.round(p * 100) / 100;
+  if (p === 0) { $('pnlCalc').textContent = ''; return; }
+  formRes = p > 0 ? 'win' : 'lose';
+  segSet('resSeg', 'r', formRes);
+  $('pnl').value = Math.abs(p);
+  $('pnlCalc').textContent = 'محاسبه‌ی خودکار از ورود و خروج: ' + fmtSigned(p);
+}
+['lot', 'entry', 'exit'].forEach(id => $(id).addEventListener('input', calcPnl));
 document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => setKind(t.dataset.k)));
 $('addBtn').addEventListener('click', () => {
   editingId = null;
