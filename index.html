@@ -27,6 +27,14 @@ header .s{font-size:11px; color:var(--mut)}
 header .sp{flex:1}
 #updateBtn{background:var(--card2); color:var(--txt); border:1px solid var(--line); border-radius:999px; padding:7px 12px; font-size:12px}
 main{padding:14px 14px 110px; max-width:640px; margin:0 auto}
+#verse{background:linear-gradient(135deg,rgba(224,170,62,.14),rgba(224,170,62,.05)); border:1px solid rgba(224,170,62,.45);
+  border-radius:16px; padding:12px 14px; text-align:center; margin-bottom:14px}
+#verse .ar{font-size:17px; font-weight:700; color:#eec25e; line-height:2}
+#verse .fa{font-size:11.5px; color:var(--mut); margin-top:2px; line-height:1.9}
+#toast{position:fixed; bottom:calc(96px + env(safe-area-inset-bottom)); left:50%; transform:translateX(-50%) translateY(16px);
+  background:#23232c; color:var(--txt); border:1px solid var(--gold); border-radius:999px; padding:10px 20px;
+  font-size:14px; font-weight:700; opacity:0; pointer-events:none; transition:all .3s; z-index:40; white-space:nowrap}
+#toast.show{opacity:1; transform:translateX(-50%) translateY(0)}
 .filters{display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap}
 .chip{background:var(--card); color:var(--mut); border:1px solid var(--line); border-radius:999px; padding:7px 14px; font-size:13px}
 .chip.on{background:var(--gold); color:#191204; border-color:var(--gold); font-weight:700}
@@ -96,12 +104,17 @@ main{padding:14px 14px 110px; max-width:640px; margin:0 auto}
   <button id="updateBtn" type="button">⟳ بروزرسانی</button>
 </header>
 <main>
+  <div id="verse">
+    <div class="ar">وَمَا مِن دَابَّةٍ فِي الْأَرْضِ إِلَّا عَلَى اللَّهِ رِزْقُهَا</div>
+    <div class="fa">و هیچ جنبنده‌ای در زمین نیست، مگر آن‌که روزی‌اش بر عهده‌ی خداست — سوره‌ی هود، آیه‌ی ۶</div>
+  </div>
   <div class="filters" id="filters"></div>
   <div class="stats" id="stats"></div>
   <div id="list"></div>
   <button class="delAll" id="delAll" type="button" style="display:none">حذف همه ثبت‌ها</button>
 </main>
 <button id="addBtn" type="button" aria-label="ثبت تازه">+</button>
+<div id="toast"></div>
 <a id="creator" href="https://t.me/mmdGK" target="_blank" rel="noopener">ساخته‌ی mmdGK</a>
 
 <div class="sheetWrap" id="sheetWrap">
@@ -391,12 +404,28 @@ $('saveBtn').addEventListener('click', () => {
   }
   editingId = null;
   save(); render(); closeSheet();
+  showToast('✓ ثبت شد');
   ['lot', 'entry', 'exit', 'pnl', 'reasonIn', 'reasonOut', 'amount', 'note'].forEach(i => $(i).value = '');
 });
 $('delAll').addEventListener('click', () =>
   askConfirm('همه ثبت‌ها حذف بشن؟', () => { entries = []; save(); render(); }));
 
+let toastTimer = null;
+function showToast(msg) {
+  const t = $('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2600);
+}
+if (sessionStorage.getItem('upd') === '1') {
+  sessionStorage.removeItem('upd');
+  setTimeout(() => showToast('✓ برنامه بروزرسانی شد'), 350);
+}
 $('updateBtn').addEventListener('click', async () => {
+  const btn = $('updateBtn');
+  btn.disabled = true;
+  btn.textContent = 'در حال بروزرسانی…';
   try {
     if ('caches' in window) {
       const keys = await caches.keys();
@@ -407,6 +436,7 @@ $('updateBtn').addEventListener('click', async () => {
       await Promise.all(regs.map(r => r.update()));
     }
   } catch (e) {}
+  sessionStorage.setItem('upd', '1');
   const u = new URL(location.href);
   u.searchParams.set('v', Date.now());
   location.replace(u.toString());
