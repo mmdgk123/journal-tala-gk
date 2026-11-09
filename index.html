@@ -115,9 +115,9 @@ main{padding:14px 14px 110px; max-width:640px; margin:0 auto}
     <div class="f">
       <label>حساب</label>
       <div class="seg" id="accSeg">
-        <button data-a="main" type="button">اصلی</button>
+        <button data-a="main" class="acc" type="button">اصلی</button>
         <button data-a="prop" class="on acc" type="button">پراپ</button>
-        <button data-a="demo" type="button">دمو</button>
+        <button data-a="demo" class="acc" type="button">دمو</button>
       </div>
     </div>
     <div id="tradeFields">
@@ -125,7 +125,7 @@ main{padding:14px 14px 110px; max-width:640px; margin:0 auto}
         <label>جهت معامله</label>
         <div class="seg" id="dirSeg">
           <button data-d="buy" class="on buy" type="button">خرید ⬆</button>
-          <button data-d="sell" type="button">فروش ⬇</button>
+          <button data-d="sell" class="sell" type="button">فروش ⬇</button>
         </div>
       </div>
       <div class="cols">
@@ -138,7 +138,7 @@ main{padding:14px 14px 110px; max-width:640px; margin:0 auto}
         <label>نتیجه معامله</label>
         <div class="seg" id="resSeg" style="margin-bottom:8px">
           <button data-r="win" class="on win" type="button">سود</button>
-          <button data-r="lose" type="button">ضرر</button>
+          <button data-r="lose" class="lose" type="button">ضرر</button>
         </div>
         <input id="pnl" inputmode="decimal" placeholder="مبلغ به دلار — مثلاً 12.50">
       </div>
