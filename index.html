@@ -106,7 +106,7 @@ main{padding:14px 14px 110px; max-width:640px; margin:0 auto}
 
 <div class="sheetWrap" id="sheetWrap">
   <div class="sheet">
-    <h3>ثبت تازه</h3>
+    <h3 id="sheetTitle">ثبت تازه</h3>
     <div class="tabs">
       <button class="tab on" data-k="trade" type="button">معامله</button>
       <button class="tab" data-k="deposit" type="button">واریز</button>
@@ -132,7 +132,8 @@ main{padding:14px 14px 110px; max-width:640px; margin:0 auto}
         <div class="f"><label>حجم (لات)</label><input id="lot" inputmode="decimal" placeholder="0.01"></div>
         <div class="f"><label>قیمت ورود</label><input id="entry" inputmode="decimal" placeholder="4120.50"></div>
         <div class="f"><label>قیمت خروج</label><input id="exit" inputmode="decimal" placeholder="4132.00"></div>
-        <div class="f"><label>تاریخ و ساعت</label><input id="when" type="datetime-local"></div>
+        <div class="f"><label>تاریخ</label><input id="date" type="date"></div>
+        <div class="f"><label>ساعت</label><input id="time" type="time"></div>
       </div>
       <div class="f">
         <label>نتیجه معامله</label>
@@ -147,7 +148,10 @@ main{padding:14px 14px 110px; max-width:640px; margin:0 auto}
     </div>
     <div id="moneyFields" style="display:none">
       <div class="f"><label>مبلغ (دلار)</label><input id="amount" inputmode="decimal" placeholder="مثلاً 25"></div>
-      <div class="f"><label>تاریخ و ساعت</label><input id="whenM" type="datetime-local"></div>
+      <div class="cols">
+        <div class="f"><label>تاریخ</label><input id="dateM" type="date"></div>
+        <div class="f"><label>ساعت</label><input id="timeM" type="time"></div>
+      </div>
       <div class="f"><label>یادداشت</label><textarea id="note" placeholder="اختیاری…"></textarea></div>
     </div>
     <button class="save" id="saveBtn" type="button">ثبت ✓</button>
@@ -176,6 +180,7 @@ entries.forEach(e => {
 if (migrated) { try { localStorage.setItem(KEY, JSON.stringify(entries)); } catch (e) {} }
 let filter = 'all';
 let formKind = 'trade', formAcc = 'prop', formDir = 'buy', formRes = 'win';
+let editingId = null;
 let confirmCb = null;
 
 const $ = id => document.getElementById(id);
@@ -243,7 +248,7 @@ function renderList() {
   $('list').innerHTML = list.map(e => {
     if (e.kind === 'trade') {
       const win = e.pnl >= 0;
-      return `<div class="entry">
+      return `<div class="entry" data-edit="${e.id}">
         <div class="row1">
           <span class="badge ${e.dir === 'buy' ? 'b-buy' : 'b-sell'}">${e.dir === 'buy' ? 'خرید' : 'فروش'} ${e.lot ? e.lot + ' لات' : ''}</span>
           <span class="acc">${ACCS[e.account] || ''}</span>
@@ -257,7 +262,7 @@ function renderList() {
       </div>`;
     }
     const dep = e.kind === 'deposit';
-    return `<div class="entry">
+    return `<div class="entry" data-edit="${e.id}">
       <div class="row1">
         <span class="badge ${dep ? 'b-dep' : 'b-wd'}">${dep ? 'واریز ⬇' : 'برداشت ⬆'}</span>
         <span class="acc">${ACCS[e.account] || ''}</span>
@@ -268,12 +273,14 @@ function renderList() {
       <button class="del" data-del="${e.id}" type="button">🗑</button>
     </div>`;
   }).join('');
-  document.querySelectorAll('[data-del]').forEach(b => b.addEventListener('click', () => {
+  document.querySelectorAll('[data-del]').forEach(b => b.addEventListener('click', ev => {
+    ev.stopPropagation();
     askConfirm('این ثبت حذف بشه؟', () => {
       entries = entries.filter(x => x.id !== b.dataset.del);
       save(); render();
     });
   }));
+  document.querySelectorAll('[data-edit]').forEach(el => el.addEventListener('click', () => openEdit(el.dataset.edit)));
 }
 function render() { renderFilters(); renderStats(); renderList(); }
 
@@ -289,15 +296,52 @@ $('confirmYes').addEventListener('click', () => {
   confirmCb = null;
 });
 
-function nowLocal() {
-  const d = new Date();
-  const p = n => String(n).padStart(2, '0');
-  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`;
+const pad = n => String(n).padStart(2, '0');
+function setDT(dId, tId, ts) {
+  const d = new Date(ts);
+  $(dId).value = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  $(tId).value = `${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
-function openSheet() {
-  $('when').value = nowLocal();
-  $('whenM').value = nowLocal();
-  $('sheetWrap').classList.add('open');
+function readDT(dId, tId) {
+  const dv = $(dId).value, tv = $(tId).value;
+  if (!dv) return Date.now();
+  const t = new Date(dv + 'T' + (tv || '00:00')).getTime();
+  return isNaN(t) ? Date.now() : t;
+}
+function openSheet() { $('sheetWrap').classList.add('open'); }
+function segSet(id, attr, val) {
+  document.querySelectorAll('#' + id + ' button').forEach(x =>
+    x.classList.toggle('on', x.dataset[attr] === val));
+}
+function setKind(k) {
+  formKind = k;
+  document.querySelectorAll('.tab').forEach(x => x.classList.toggle('on', x.dataset.k === k));
+  $('tradeFields').style.display = k === 'trade' ? 'block' : 'none';
+  $('moneyFields').style.display = k === 'trade' ? 'none' : 'block';
+}
+function openEdit(id) {
+  const e = entries.find(x => x.id === id);
+  if (!e) return;
+  editingId = id;
+  $('sheetTitle').textContent = 'ویرایش ثبت';
+  formAcc = e.account; segSet('accSeg', 'a', e.account);
+  setKind(e.kind);
+  if (e.kind === 'trade') {
+    formDir = e.dir; segSet('dirSeg', 'd', e.dir);
+    formRes = e.pnl >= 0 ? 'win' : 'lose'; segSet('resSeg', 'r', formRes);
+    $('lot').value = e.lot || '';
+    $('entry').value = e.entry || '';
+    $('exit').value = e.exit || '';
+    $('pnl').value = Math.abs(e.pnl);
+    $('reasonIn').value = e.reasonIn || '';
+    $('reasonOut').value = e.reasonOut || '';
+    setDT('date', 'time', e.ts);
+  } else {
+    $('amount').value = e.amount;
+    $('note').value = e.note || '';
+    setDT('dateM', 'timeM', e.ts);
+  }
+  openSheet();
 }
 function closeSheet() { $('sheetWrap').classList.remove('open'); }
 function segWire(id, attr, cb) {
@@ -310,39 +354,42 @@ function segWire(id, attr, cb) {
 segWire('accSeg', 'a', v => formAcc = v);
 segWire('dirSeg', 'd', v => formDir = v);
 segWire('resSeg', 'r', v => formRes = v);
-document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => {
-  document.querySelectorAll('.tab').forEach(x => x.classList.remove('on'));
-  t.classList.add('on');
-  formKind = t.dataset.k;
-  $('tradeFields').style.display = formKind === 'trade' ? 'block' : 'none';
-  $('moneyFields').style.display = formKind === 'trade' ? 'none' : 'block';
-}));
-$('addBtn').addEventListener('click', openSheet);
-$('cancelBtn').addEventListener('click', closeSheet);
+document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => setKind(t.dataset.k)));
+$('addBtn').addEventListener('click', () => {
+  editingId = null;
+  $('sheetTitle').textContent = 'ثبت تازه';
+  setDT('date', 'time', Date.now());
+  setDT('dateM', 'timeM', Date.now());
+  openSheet();
+});
+$('cancelBtn').addEventListener('click', () => { editingId = null; closeSheet(); });
 $('sheetWrap').addEventListener('click', e => { if (e.target === $('sheetWrap')) closeSheet(); });
 $('saveBtn').addEventListener('click', () => {
-  const id = Date.now() + '' + Math.floor(Math.random() * 999);
+  const id = editingId || (Date.now() + '' + Math.floor(Math.random() * 999));
   if (formKind === 'trade') {
     const mag = parseNum($('pnl').value);
     if (isNaN(mag) || mag === 0) { $('pnl').focus(); return; }
-    const wv = $('when').value ? new Date($('when').value).getTime() : Date.now();
-    entries.push({
-      id, kind: 'trade', ts: isNaN(wv) ? Date.now() : wv, account: formAcc, dir: formDir,
+    const data = {
+      kind: 'trade', ts: readDT('date', 'time'), account: formAcc, dir: formDir,
       lot: parseNum($('lot').value) || null,
       entry: parseNum($('entry').value) || null,
       exit: parseNum($('exit').value) || null,
       pnl: formRes === 'win' ? Math.abs(mag) : -Math.abs(mag),
       reasonIn: $('reasonIn').value.trim(), reasonOut: $('reasonOut').value.trim()
-    });
+    };
+    if (editingId) { const old = entries.find(x => x.id === editingId); if (old) Object.assign(old, data); }
+    else entries.push(Object.assign({ id }, data));
   } else {
     const amt = parseNum($('amount').value);
     if (isNaN(amt) || amt <= 0) { $('amount').focus(); return; }
-    const wv = $('whenM').value ? new Date($('whenM').value).getTime() : Date.now();
-    entries.push({
-      id, kind: formKind, ts: isNaN(wv) ? Date.now() : wv, account: formAcc,
+    const data = {
+      kind: formKind, ts: readDT('dateM', 'timeM'), account: formAcc,
       amount: Math.abs(amt), note: $('note').value.trim()
-    });
+    };
+    if (editingId) { const old = entries.find(x => x.id === editingId); if (old) Object.assign(old, data); }
+    else entries.push(Object.assign({ id }, data));
   }
+  editingId = null;
   save(); render(); closeSheet();
   ['lot', 'entry', 'exit', 'pnl', 'reasonIn', 'reasonOut', 'amount', 'note'].forEach(i => $(i).value = '');
 });
