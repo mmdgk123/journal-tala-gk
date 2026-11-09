@@ -1,4 +1,4 @@
-const CACHE = 'gold-journal-v3';
+const CACHE = 'gold-journal-v4';
 const ASSETS = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', e => {
