@@ -115,9 +115,9 @@ main{padding:14px 14px 110px; max-width:640px; margin:0 auto}
     <div class="f">
       <label>حساب</label>
       <div class="seg" id="accSeg">
+        <button data-a="main" type="button">اصلی</button>
         <button data-a="prop" class="on acc" type="button">پراپ</button>
-        <button data-a="trendo" type="button">ترندو</button>
-        <button data-a="eplanet" type="button">ای‌پلنت</button>
+        <button data-a="demo" type="button">دمو</button>
       </div>
     </div>
     <div id="tradeFields">
@@ -164,9 +164,16 @@ main{padding:14px 14px 110px; max-width:640px; margin:0 auto}
 </div>
 <script>
 const KEY = 'gold-journal-v1';
-const ACCS = { prop: 'پراپ', trendo: 'ترندو', eplanet: 'ای‌پلنت' };
+const ACCS = { main: 'اصلی', prop: 'پراپ', demo: 'دمو' };
 let entries = [];
 try { entries = JSON.parse(localStorage.getItem(KEY) || '[]'); } catch (e) { entries = []; }
+/* مهاجرت نام حساب‌های نسخه اول */
+let migrated = false;
+entries.forEach(e => {
+  if (e.account === 'trendo') { e.account = 'main'; migrated = true; }
+  if (e.account === 'eplanet') { e.account = 'demo'; migrated = true; }
+});
+if (migrated) { try { localStorage.setItem(KEY, JSON.stringify(entries)); } catch (e) {} }
 let filter = 'all';
 let formKind = 'trade', formAcc = 'prop', formDir = 'buy', formRes = 'win';
 let confirmCb = null;
@@ -194,7 +201,7 @@ function filtered() {
   return filter === 'all' ? entries.slice() : entries.filter(e => e.account === filter);
 }
 function renderFilters() {
-  const defs = [['all', 'همه حساب‌ها'], ['prop', 'پراپ'], ['trendo', 'ترندو'], ['eplanet', 'ای‌پلنت']];
+  const defs = [['all', 'همه حساب‌ها'], ['main', 'اصلی'], ['prop', 'پراپ'], ['demo', 'دمو']];
   $('filters').innerHTML = defs.map(([k, t]) =>
     `<button class="chip ${filter === k ? 'on' : ''}" data-f="${k}" type="button">${t}</button>`).join('');
   document.querySelectorAll('#filters .chip').forEach(c =>
