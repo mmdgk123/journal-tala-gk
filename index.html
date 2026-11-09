@@ -17,7 +17,7 @@
   --grn:#2fbf71; --red:#e5534b;
 }
 *{box-sizing:border-box; -webkit-tap-highlight-color:transparent}
-html,body{margin:0; padding:0}
+html,body{margin:0; padding:0; overflow-x:hidden}
 body{background:var(--bg); color:var(--txt); font-family:Vazirmatn,Tahoma,sans-serif; min-height:100vh}
 button{font-family:inherit; cursor:pointer}
 header{position:sticky; top:0; z-index:5; background:linear-gradient(135deg,#1c1a12,#141419 60%);
@@ -68,15 +68,16 @@ main{padding:14px 14px 110px; max-width:640px; margin:0 auto}
 .sheetWrap{position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:20; display:none}
 .sheetWrap.open{display:block}
 .sheet{position:absolute; bottom:0; left:0; right:0; max-width:640px; margin:0 auto; background:#17171d;
-  border-radius:22px 22px 0 0; padding:18px 16px calc(18px + env(safe-area-inset-bottom)); max-height:88vh; overflow-y:auto}
+  border-radius:22px 22px 0 0; padding:18px 16px calc(18px + env(safe-area-inset-bottom)); max-height:88vh; overflow-y:auto; overflow-x:hidden}
 .sheet h3{margin:0 0 14px; font-size:16px}
 .tabs{display:flex; gap:8px; margin-bottom:14px}
 .tab{flex:1; background:var(--card2); color:var(--mut); border:1px solid var(--line); border-radius:12px; padding:10px 0; font-size:14px}
 .tab.on{background:var(--gold); color:#191204; font-weight:800; border-color:var(--gold)}
 .f{margin-bottom:12px}
 .f label{display:block; font-size:12.5px; color:var(--mut); margin-bottom:6px}
-.f input,.f textarea{width:100%; background:var(--card2); border:1px solid var(--line); border-radius:12px;
+.f input,.f textarea{width:100%; min-width:0; max-width:100%; background:var(--card2); border:1px solid var(--line); border-radius:12px;
   color:var(--txt); font-family:inherit; font-size:16px; padding:11px 12px; outline:none}
+input[type="date"],input[type="time"]{-webkit-appearance:none; appearance:none; min-height:48px}
 .f textarea{resize:vertical; min-height:44px}
 .f input:focus,.f textarea:focus{border-color:var(--gold)}
 .seg{display:flex; gap:8px}
@@ -88,6 +89,7 @@ main{padding:14px 14px 110px; max-width:640px; margin:0 auto}
 .seg button.on.lose{background:rgba(229,83,75,.18); color:var(--red); border-color:var(--red)}
 .seg button.on.acc{background:var(--gold); color:#191204; border-color:var(--gold)}
 .cols{display:grid; grid-template-columns:1fr 1fr; gap:10px}
+.cols>*{min-width:0}
 .save{width:100%; background:linear-gradient(135deg,#f0bc55,var(--gold2)); color:#191204; border:none;
   border-radius:14px; padding:14px 0; font-size:16px; font-weight:800; margin-top:4px}
 .cancel{width:100%; background:none; color:var(--mut); border:none; padding:12px 0; font-size:14px}
